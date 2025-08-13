@@ -1,10 +1,19 @@
-import com.thingmagic.*;
+import com.thingmagic.*;   // RFID knižnica
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.IOException;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.util.Map;
-import java.util.concurrent.*;
 
 public class RaceTimingApplication {
     private static final Logger logger = LoggerFactory.getLogger(RaceTimingApplication.class);
