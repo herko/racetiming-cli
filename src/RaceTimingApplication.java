@@ -1,22 +1,28 @@
 import com.thingmagic.*;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.URI;
-import java.time.Duration;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RaceTimingApplication {
 
-    private static String clientIp;
-    private static HttpClient httpClient;
-
     public static void main(String[] args) {
+
         try {
+            String csvFilePath = "/home/ckkrupina/Plocha/rfid_readings.csv";
             String readerURI = "tmr:///dev/ttyUSB0";
-
+            Map<String, Integer> readCounts = new HashMap<>();
             Reader rfidReader = Reader.create(readerURI);
-
             rfidReader.connect();
+
+            FileWriter fw = new FileWriter(csvFilePath, true);
+            PrintWriter writer = new PrintWriter(fw, true);
+            File csvFile = new File(csvFilePath);
+            if (csvFile.length() == 0) {
+                writer.println("EPC,RSS,TIME");
+            }
 
             // Nastavenie parametrov čítačky
             ReadPlan plan = new SimpleReadPlan(null, TagProtocol.GEN2, null, null, 100);
@@ -25,29 +31,44 @@ public class RaceTimingApplication {
             rfidReader.paramSet("/reader/radio/readPower", 2500);
             rfidReader.paramSet("/reader/gen2/session", Gen2.Session.S1);
 
-            // Pridanie listener-a pre čítanie tagov
+            // Zapneme autoflush na výstupe
+            System.setOut(new java.io.PrintStream(System.out, true));
+
+            // Listener pre čítanie tagov
             rfidReader.addReadListener((r, tr) -> {
                 String epc = tr.epcString();
                 Number rssi = tr.getRssi();
                 long timestamp = tr.getTime();
 
-                System.out.println("Tag read: EPC=" + epc + ", RSSI: " + rssi + ", Time: " + timestamp);
+                // Get read counts
+                int count = readCounts.getOrDefault(epc, 0);
+
+                if (count < 2) {
+                    readCounts.put(epc, count + 1);
+
+                    // Console
+                    System.out.println("Tag read: EPC=" + epc + ", RSSI: " + rssi + ", Time: " + timestamp);
+                    // CSV
+                    writer.printf("%s,%s,%d%n", epc, rssi, timestamp);
+                } else {
+                    // Console
+                    System.out.println("Tag read ignored: EPC=" + epc + ", RSSI: " + rssi + ", Time: " + timestamp);
+                }
             });
 
             // Spustenie kontinuálneho čítania
             rfidReader.startReading();
-            
+
             System.out.println("Continuous reading started. Press Enter to stop...");
-            
+
             // Čakanie na vstup používateľa pre zastavenie
             System.in.read();
-            
+
             // Zastavenie čítania
             rfidReader.stopReading();
             rfidReader.destroy();
-            
-            System.out.println("Reading stopped.");
 
+            System.out.println("Reading stopped.");
         } catch (ReaderException e) {
             System.err.println("RFID reader initialization error: " + e.getMessage());
         } catch (Exception e) {
