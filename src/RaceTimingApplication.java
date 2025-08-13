@@ -1,10 +1,10 @@
 import com.thingmagic.*;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.thingmagic.Reader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +15,8 @@ public class RaceTimingApplication {
     public static void main(String[] args) {
 
         try {
-            String csvFilePath = "/home/ckkrupina/Plocha/rfid_readings.csv";
+            long epochMillis = System.currentTimeMillis();
+            String csvFilePath = "/home/ckkrupina/Plocha/rfid_readings_" + epochMillis + ".csv";
             String readerURI = "tmr:///dev/ttyUSB0";
             Map<String, Integer> readCounts = new HashMap<>();
             Reader rfidReader = Reader.create(readerURI);
@@ -63,7 +64,14 @@ public class RaceTimingApplication {
             logger.info("Continuous reading started. Press Enter to stop...");
 
             // Čakanie na vstup používateľa pre zastavenie
-            System.in.read();
+            BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                if (line.trim().equalsIgnoreCase("q")) {
+                    break;
+                }
+            }
 
             // Zastavenie čítania
             rfidReader.stopReading();
