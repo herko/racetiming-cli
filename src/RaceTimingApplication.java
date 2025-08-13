@@ -31,9 +31,6 @@ public class RaceTimingApplication {
             rfidReader.paramSet("/reader/radio/readPower", 2500);
             rfidReader.paramSet("/reader/gen2/session", Gen2.Session.S1);
 
-            // Zapneme autoflush na výstupe
-            System.setOut(new java.io.PrintStream(System.out, true));
-
             // Listener pre čítanie tagov
             rfidReader.addReadListener((r, tr) -> {
                 String epc = tr.epcString();
@@ -48,6 +45,7 @@ public class RaceTimingApplication {
 
                     // Console
                     System.out.println("Tag read: EPC=" + epc + ", RSSI: " + rssi + ", Time: " + timestamp);
+                    System.out.flush();
                     // CSV
                     writer.printf("%s,%s,%d%n", epc, rssi, timestamp);
                 } else {
