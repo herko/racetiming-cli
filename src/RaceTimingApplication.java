@@ -5,8 +5,12 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class RaceTimingApplication {
+    private static final Logger logger = LoggerFactory.getLogger(RaceTimingApplication.class);
 
     public static void main(String[] args) {
 
@@ -44,20 +48,19 @@ public class RaceTimingApplication {
                     readCounts.put(epc, count + 1);
 
                     // Console
-                    System.out.println("Tag read: EPC=" + epc + ", RSSI: " + rssi + ", Time: " + timestamp);
-                    System.out.flush();
+                    logger.info("Tag read: EPC={}, RSSI: {}, Time: {}", epc, rssi, timestamp);
                     // CSV
                     writer.printf("%s,%s,%d%n", epc, rssi, timestamp);
                 } else {
                     // Console
-                    System.out.println("Tag read ignored: EPC=" + epc + ", RSSI: " + rssi + ", Time: " + timestamp);
+                    logger.info("Tag read ignored: EPC={}, RSSI: {}, Time: {}", epc, rssi, timestamp);
                 }
             });
 
             // Spustenie kontinuálneho čítania
             rfidReader.startReading();
 
-            System.out.println("Continuous reading started. Press Enter to stop...");
+            logger.info("Continuous reading started. Press Enter to stop...");
 
             // Čakanie na vstup používateľa pre zastavenie
             System.in.read();
@@ -66,11 +69,11 @@ public class RaceTimingApplication {
             rfidReader.stopReading();
             rfidReader.destroy();
 
-            System.out.println("Reading stopped.");
+            logger.info("Reading stopped.");
         } catch (ReaderException e) {
-            System.err.println("RFID reader initialization error: " + e.getMessage());
+            logger.error("RFID reader initialization error: {}", e.getMessage());
         } catch (Exception e) {
-            System.err.println("Unexpected error: " + e.getMessage());
+            logger.error("Unexpected error: {}", e.getMessage());
         }
     }
 }
